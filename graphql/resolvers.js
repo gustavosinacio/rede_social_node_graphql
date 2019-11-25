@@ -1,21 +1,24 @@
-const uuid = require("uuid/v1");
+const uuid = require('uuid/v1');
 const posts = [];
+const storage = require('../config/storage');
 
 const resolvers = {
   Query: {
-    posts: () => posts
+    posts: () => posts,
   },
 
   Mutation: {
-    addPost(parent, { post }) {
-      const { description } = post;
+    async addPost(parent, { post }) {
+      const { description, picture } = post;
+      const { mimetype, createReadStream } = await picture;
 
+      const { path } = await storage.upload(createReadStream(), mimetype);
       const newPost = {
         id: uuid(),
-        picture: "/path",
+        picture: path,
         description,
         createdAt: new Date().toISOString(),
-        claps: 0
+        claps: 0,
       };
 
       posts.push(newPost);
@@ -32,10 +35,10 @@ const resolvers = {
       }
 
       return null;
-    }
-  }
+    },
+  },
 };
 
 module.exports = {
-  resolvers
+  resolvers,
 };
